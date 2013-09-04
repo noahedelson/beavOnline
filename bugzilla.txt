@@ -1,0 +1,9 @@
+
+
+bug 0:
+
+	Not all vehicles (red objects) are mobile, but they should be.  Fix this.
+
+
+bug 1:
+	Trajectory lines (red, path to goal) are not rendered.  Fix this.

@@ -1,0 +1,90 @@
+Legend:
+
+ vehicles:   RED
+ resources:  GREEN
+ structures: BLUE
+	
+
+
+Economy
+Actor
+Resource
+Vehicle
+ 
+
+Locale:  # the world
+ Sublocale [][] torus.  # rooms in the world
+
+Vehicle:
+ Body, Personal Vehicles (various classes), Freight Transport, Passenger Transport, Industrial Transport 
+
+
+Actor:
+ Role
+ Locale, Sublocale
+
+
+ Actor::act():
+   if(actionInProgress() && noEmergencys())   # this should happen 99% of the time
+	return;
+
+   Role *r = getRole();
+   Sublocale *sl = getLocation();  # eg 'sector' or 'room'
+
+   if(r->isFreightTransport()):
+     sl->radio(	"I can Transport X goods for Y price.")
+     sl->findRadioChatter("I have X goods for 
+   if(r->isPassengerTransport()):
+	...
+   if(r->isFactory()):
+     sl->radio(	"I have X goods for Y price."
+		"I require X goods and will pay Y price for them."
+   if(r->isConsumer()):
+	... "I require X goods and will pay Y price for them.
+   if(r->isProtection()):
+	... "I can provide protection in this sublocale
+   if(r->isRaider()):
+	... "I can raid in this sublocale  
+   
+   #if(r->isSmuggler()):  same as transport? 
+   #if(r->isPolice()):
+   #if(r->isMilitary()):
+   #if(r->isVIP()):
+ 
+
+
+
+
+
+
+closer to the sun, more power to the solar stations.
+
+
+shipyard
+ requires: 
+            ore, power, silicon, food
+
+solar station:
+
+ore mine: 
+
+silicon mine:
+  requires 
+
+water:
+
+wheat farm:
+
+bakery:
+
+beanery:
+
+spice farm:
+
+trance farm:
+
+weapons plants (various)
+
+
+orbital supply base
+
