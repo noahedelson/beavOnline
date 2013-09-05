@@ -89,7 +89,9 @@ def display(  ):
 	glLoadIdentity()
 	glMatrixMode( GL_MODELVIEW )
 	glLoadIdentity()
+	glPushMatrix()
 	Locale.sandbox.renderGlobalMap()
+	glPopMatrix()
 	lineNum = 0
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 	for line in report:

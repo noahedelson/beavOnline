@@ -4,7 +4,7 @@ import Locale
 import pdb
 from pdb import set_trace
 
-MAX_VELOCITY = 1.9
+MAX_VELOCITY = 11.9
 		
 class WorldObject:
 	def __init__(self, sublocale):
@@ -66,11 +66,12 @@ class WorldObject:
 				self.expire()
 
 	def accelerate(self, goal):
-		factor = 0.01
+		factor = -1.01
 		difference = Position( factor*(self.position.x-goal.x), factor*(self.position.y-goal.y), factor*(self.position.z-goal.z) )
-		if difference.length() > MAX_VELOCITY:
-			self.velocity.renormalize(MAX_VELOCITY)
-			#print str(self.velocity.length())
+		self.velocity.renormalize(MAX_VELOCITY)
+		if difference.length() <= MAX_VELOCITY:
+			# initiate docking procedures?
+			#sell shit?
 
 		#difference = difference.renormalize(1.0)
 		self.velocity.x += difference.x

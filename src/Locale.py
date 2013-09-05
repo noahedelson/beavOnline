@@ -19,7 +19,7 @@ except:
 WORLD_SIZE = 3
 MAX_RESOURCES_PER_SUBLOCALE = 5
 UNIVERSAL_RESOURCE_UTILIZATION_FACTOR = 0.25
-UNIVERSAL_SHIP_DENSITY = 5.4
+UNIVERSAL_SHIP_DENSITY = 1.4
 
 
 
@@ -256,6 +256,5 @@ class Sublocale:
 		if render[1]: self.renderWithColor((0,1,0), self.resources, 40.0)
 		if render[0]: self.renderWithColor((1,0,0), self.vehicles, 40.1)
 		glPopMatrix()
-		
 
 sandbox = Locale()
