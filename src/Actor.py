@@ -1,6 +1,7 @@
 from collections import deque
 import pdb
 from pdb import set_trace
+from effect import * 
 
 WARNING_LEVEL = 0
 
@@ -32,17 +33,47 @@ class Actor:
 		
 	def follow(self):
 		pass
+		
+	def mine_asteroid(self, asteroid):
+		set_trace()
+		if asteroid.amount >= 1.0 and self.activeVehicle.getCargoAvailable() >= 1.0:
+			asteroid.amount -= 1.0
+			ch = self.activeVehicle.cargoHold
+			for item in ch:
+				try:
+					if asteroid.type == item.type:
+						item.amount += 1.0
+						print 'MINING SUCCESSFUL' 
+				except:
+					pass
+					
+		
 	def mine(self):
-		# starting point: flying through space, in their space-planes.
+		GroovyEffect(3.0, self.activeVehicle.position, self.activeVehicle.sublocale)
+		if len(self.goals) > 0:
+			if self.goals[0].position.distance( self.activeVehicle.position ) < 2.0:
+				try: # if its a resource
+					#print 'goal met: ' + str(type(self.goals[0])) 
+					amount = self.goals[0].amount
+					type   = self.goals[0].type
+					mine_asteroid(self.goals[0])
+				except:
+					pass
+				self.goals = self.goals[1:]  # remove head
 		self.startingPoint = self.activeVehicle.position  # TODO: will this be a shallow copy and hence I have a bug?
 		if self.activeVehicle.getCargoAvailable() < 10.0: # less than 10 cubic meters of cargo left.. time to sell!
 			goodGoal = self.getSalesPath()
 		else:
 			goodGoal = self.activeVehicle.sublocale.getNearestResource(self.activeVehicle.position)
-			
 		self.goals.append(goodGoal)
-		self.halfwayPoint = self.startingPoint.plus(goodGoal.position.scale(0.5))
-	
+		try:
+			self.halfwayPoint = self.startingPoint.plus(goodGoal.position.scale(0.5))
+		except:
+			#set_trace()
+			pass
+
+
+			
 	def dock(self):
 		pass
 	def sell_cargo(self):

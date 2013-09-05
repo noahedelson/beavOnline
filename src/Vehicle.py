@@ -5,7 +5,7 @@ from Resource import *
 	
 class Vehicle(WorldObject):
 	def __init__(self, pilot, sublocale):
-		WorldObject.__init__(self, sublocale)
+		WorldObject.__init__(self, sublocale, 'Vehicle')
 		self.pilot = pilot
 		self.goals = []
 		self.startingPoint = 0
@@ -66,8 +66,6 @@ class Miner(Vehicle):
 		
 	def idle(self, deltaT):
 		WorldObject.idle(self,deltaT)
-		try:
+		if len(self.goals) > 0:
 			print 'distance to goal: ' + str( self.goals[0].position.distance(self.position) )
-		except:
-			pass
 

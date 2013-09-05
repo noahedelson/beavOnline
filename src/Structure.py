@@ -5,7 +5,7 @@ from random import random as rand
 
 class Structure(WorldObject):
 	def __init__(self, sublocale):
-		WorldObject.__init__(self, sublocale)
+		WorldObject.__init__(self, sublocale, 'Structure')
 		self.ID       = ''
 		self.produces = []
 		self.consumes = []

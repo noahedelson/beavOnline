@@ -12,7 +12,7 @@ MAX_RESOURCES = 1.4
 
 class Resource(WorldObject):
 	def __init__(self, type, sublocale, amount=1.0):
-		WorldObject.__init__(self, sublocale)
+		WorldObject.__init__(self, sublocale, 'Resource')
 		self.type   = type
 		self.amount = amount
 		

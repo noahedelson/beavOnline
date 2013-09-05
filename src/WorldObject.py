@@ -4,10 +4,10 @@ import Locale
 import pdb
 from pdb import set_trace
 
-MAX_VELOCITY = 11.9
+MAX_VELOCITY = 110.9
 		
 class WorldObject:
-	def __init__(self, sublocale):
+	def __init__(self, sublocale, ObjectType):
 		self.sdc 				= 1
 		self.mdc 				= 0
 		self.sublocale 			= sublocale
@@ -18,8 +18,18 @@ class WorldObject:
 		self.velocity  			= Position(0.0, 0.0, 0.0)
 		self.oldsector 			= 0
 		self.mass      			= 1.0
-		# position, velocity, mass 
+		self.objectType 		= ObjectType
+		
+		if ObjectType=='GroovyEffect':
+			sublocale.effects.append(self)
+		if ObjectType=='Vehicle':
+			sublocale.vehicles.append(self)
+		if ObjectType=='Resource':
+			sublocale.resources.append(self)
+		if ObjectType=='Structure':
+			sublocale.structures.append(self)
 
+			
 	def RedoSector(self, oldsector):
 		try:
 			#print dir(oldsector.vehicles)
@@ -72,8 +82,11 @@ class WorldObject:
 		if difference.length() <= MAX_VELOCITY:
 			# initiate docking procedures?
 			#sell shit?
+			pass
 
 		#difference = difference.renormalize(1.0)
 		self.velocity.x += difference.x
 		self.velocity.y += difference.y
 		self.velocity.z += difference.z
+		
+	

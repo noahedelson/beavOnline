@@ -19,15 +19,30 @@ label = ['ships', 'rsourcs', 'statns', 'trjct', ' grid',  ' fx ', ' XXX  ',  '  
 report = ('no sector selected', 'click on a sector')
 
  
+buttonState = 0
+buttomMode  = 0
+ 
+ 
 def mouseButton( button, mode, x, y ):	
-	global sandbox, report
-	print 'getting radio chatter for sublocale: ' + str(float(x)) + ' ' +str(float(WIDTH)) + ' ' + str(y)  + ' '  + str(float(HEIGHT))
-	print ' eg (' +str(float(x)/float(WIDTH)) +',' + str(float(y)/float(HEIGHT)) + ')'
-	sector = Locale.sandbox.getSectorFromMouseXY(float(x)/float(WIDTH),float(y)/float(HEIGHT))
-	Locale.sandbox.redSector = sector 
-	report = sector.getRadioChatter()
-	print report
-	glutPostRedisplay( )
+	global sandbox, report, buttonState, buttonMode
+	buttonState  = button
+	buttonMode   = mode
+
+	print button, mode
+	if button ==  GLUT_LEFT_BUTTON: 
+		sector = Locale.sandbox.getSectorFromMouseXY(float(x)/float(WIDTH),float(y)/float(HEIGHT))
+		Locale.sandbox.redSector = sector 
+		glutPostRedisplay( )
+	if button ==  GLUT_RIGHT_BUTTON: 
+		print 'getting radio chatter for sublocale: ' + str(float(x)) + ' ' +str(float(WIDTH)) + ' ' + str(y)  + ' '  + str(float(HEIGHT))
+		print ' eg (' +str(float(x)/float(WIDTH)) +',' + str(float(y)/float(HEIGHT)) + ')'
+		sector = Locale.sandbox.getSectorFromMouseXY(float(x)/float(WIDTH),float(y)/float(HEIGHT))
+		Locale.sandbox.redSector = sector 
+		report = sector.getRadioChatter()
+		print report
+		glutPostRedisplay( )
+
+	
 	
 def mouseMotion( x, y ): 
 	global mouse_coords
@@ -44,6 +59,12 @@ def displayRenderState():
 	print '\nrendering: ' + str(Locale.sandbox.render)
 	
 
+def zoom(x,y):
+	sector = Locale.sandbox.getSectorFromMouseXY(float(x)/float(WIDTH),float(y)/float(HEIGHT))
+	Locale.sandbox.zoomTo(sector)
+
+def zoomback(x,y):
+	Locale.sandbox.zoomOut()
 	
 def keyPressed( key, x, y ):
 	if key in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'):
@@ -54,6 +75,12 @@ def keyPressed( key, x, y ):
 		# radio in
 		sandbox.radioIn()
 	if key in ('q', 'Q', '\x1b'): sys.exit( )
+
+	if key in ('z' 'Z') and buttonState==GLUT_DOWN and Locale.sandbox.zooming == False and Locale.sandbox.zoomed == False:
+		zoom(x,y)
+	if key in ('z' 'Z') and buttonState==GLUT_DOWN and Locale.sandbox.zooming == False and Locale.sandbox.zoomed == True:
+		zoomback(x,y)
+	
 	glutPostRedisplay( )
 def specialKeyPressed( key, x, y):
 	if key == 27:

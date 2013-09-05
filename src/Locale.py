@@ -2,7 +2,9 @@
 from Resource import Resource
 from Vehicle import *
 from Actor import *
+from effect import *
 from random import random as rand
+from time import time 
 
 import Callbacks
 from Callbacks import * 
@@ -19,7 +21,7 @@ except:
 WORLD_SIZE = 3
 MAX_RESOURCES_PER_SUBLOCALE = 5
 UNIVERSAL_RESOURCE_UTILIZATION_FACTOR = 0.25
-UNIVERSAL_SHIP_DENSITY = 1.4
+UNIVERSAL_SHIP_DENSITY = 2.4
 
 
 
@@ -27,12 +29,15 @@ only = []
 def getOnly():
 	global only
 	return only
+	
 
 class Locale:
 	def __init__(self):
 		global only
 		self.WORLD_SIZE = WORLD_SIZE 
 		self.redSector  = 0
+		self.zooming	= False
+		self.zoomed		= False
 		self.render = [True] * 10
 		self.sl_torus = [x[:] for x in [[0]*WORLD_SIZE]*WORLD_SIZE]
 		only = self
@@ -56,6 +61,17 @@ class Locale:
 			self.sl_torus[0][y].addNeighbor( 'EAST', self.sl_torus[WORLD_SIZE-1][y])
 			self.sl_torus[WORLD_SIZE-1][y].addNeighbor( 'WEST', self.sl_torus[0][y])
 
+	def zoomTo(self, sector):
+		self.zoomSector = sector
+		self.zooming    = True
+		self.zoomStart  = time()
+		
+	def zoomOut(self):
+		self.zooming    = True
+		self.zoomSector = 0
+		self.zoomStart  = time()
+		
+			
 	def renderGrid(self):
 		#scale = 2.0/WORLD_SIZE
 		glPushMatrix()
@@ -91,9 +107,23 @@ class Locale:
 	
 			
 	def renderGlobalMap(self):
-		scale = 2.0/WORLD_SIZE
-		glTranslatef(-1.0,-1.0,0.0)	
-		glScalef(scale,scale,scale)
+		if not self.zooming and not self.zoomed:
+			scale = 2.0/WORLD_SIZE
+			glTranslatef(-1.0,-1.0,0.0)	
+			glScalef(scale,scale,scale)
+		if self.zooming and not self.zoomed:
+			elapsed = time() - self.zoomStart
+			if elapsed > 1.0:
+				self.zooming = False
+				self.zoomed  = True
+			else:
+				scale = 2.0/(float(WORLD_SIZE)-float(WORLD_SIZE)* elapsed)
+				glTranslatef(-1.0 + elapsed * (self.zoomSector.x),-1.0 + elapsed * (self.zoomSector.x),0.0)	
+				glScalef(scale,scale,scale)
+		if self.zoomed:
+			scale = 2.0
+			glTranslatef(-1.0,-1.0,0.0)	
+			glScalef(scale,scale,scale)
 
 		self.renderGrid()
 		self.renderRedSector()  # also renders sublocales
@@ -118,7 +148,6 @@ class Locale:
 			return self.sl_torus[int(x*WORLD_SIZE/1000.0)][int(y*WORLD_SIZE/1000.0)]
 		else:
 			return self.sl_torus[0][0]
-	
 		
 	def getSectorFromMouseXY(self,x,y):
 		#print 'x,y' + str(x) + ' ' + str(y)
@@ -126,7 +155,6 @@ class Locale:
 			return self.sl_torus[int(x*WORLD_SIZE)][int(-y*WORLD_SIZE)-1]
 		else:
 			return self.sl_torus[0][0]
-		
 		
 	def radioIn(self):	
 		for x in range(1,WORLD_SIZE):
@@ -140,7 +168,6 @@ class Locale:
 		  sl = self.sl_torus[x][y]
 		  sl.idle(deltaT)
 		
-		
 class Sublocale:
 	def __init__(self, x, y, **kwargs):
 		self.neighbors = []
@@ -150,6 +177,7 @@ class Sublocale:
 		self.resources  = []
 		self.structures = []
 		self.actors     = []
+		self.effects    = []
 		self.x = x
 		self.y = y
 		self.radio  = []
@@ -167,11 +195,11 @@ class Sublocale:
 	
 	def initRandomResources(self):
 		for x in range(0, MAX_RESOURCES_PER_SUBLOCALE):
-			self.resources.append(Resource('RANDOM', self, rand() * 3.0 ))
+			Resource('RANDOM', self, rand() * 3.0 )
 	def initRandomStructures(self):
 		for resource in self.resources:
 			if rand() < UNIVERSAL_RESOURCE_UTILIZATION_FACTOR:
-				self.structures.append(resource.makeFactory(self))
+				resource.makeFactory(self)
 				
 	''' includes actors '''
 	def initRandomVehicles(self):
@@ -180,7 +208,6 @@ class Sublocale:
 			ship  = Miner(pilot, self)
 			pilot.setVehicle(ship)
 			pilot.setProfession('miner')
-			self.vehicles.append( ship ) 
 			self.actors.append(pilot)
 		
 	def getNearestResource(self, position):
@@ -197,7 +224,9 @@ class Sublocale:
 
 	def getStationsSelling(self, resourceList):
 		stations_selling = []
+		el = []
 		for station in self.structures:
+			el = station
 			for resource_wanted in station.consumes:
 				for cargoItem in resourceList:
 					if cargoItem == resource_wanted:
@@ -206,7 +235,7 @@ class Sublocale:
 		if len(stations_selling) > 0:
 			return stations_selling[0]  # for now, return the first one.  later this will be chosen more carefully
 		else:
-			return station  # go *somewhere* if you can't find people who want your resources.
+			return el  # go *somewhere* if you can't find people who want your resources.
 	def addNeighbor(self, direction, neighbor):
 		self.neighbors += (direction, neighbor)
 		
@@ -217,14 +246,25 @@ class Sublocale:
 		return retArr
 		
 	def idle(self, deltaT):
-		for item in self.vehicles: item.idle(deltaT)
-		for item in self.structures: item.idle(deltaT)
-		for item in self.resources: item.idle(deltaT)
-		for item in self.actors: item.idle(deltaT)
+		for item in self.vehicles: 
+			if not item.idle(deltaT):
+				self.vehicles.remove(item)
+		for item in self.structures: 
+			if not item.idle(deltaT):
+				self.structures.remove(item)
+		for item in self.resources: 
+			if not item.idle(deltaT):
+				self.resources.remove(item)
+		for item in self.actors: 
+			if not item.idle(deltaT):
+				self.actors.remove(item)
+		for item in self.effects: 
+			if not item.idle(deltaT):
+				self.effects.remove(item)
 
 		
 	def renderWithColor(self, color, list, size=1.0):
-		glColor3f(color[0],color[1],color[2])
+		glColor4f(color[0],color[1],color[2], color[3])
 		for item in list:
 			try:
 				size = item.amount
@@ -252,9 +292,17 @@ class Sublocale:
 		
 	def renderGlobalMap(self, render):
 		glPushMatrix()
-		if render[2]: self.renderWithColor((0,0,1), self.structures, 30.0)
-		if render[1]: self.renderWithColor((0,1,0), self.resources, 40.0)
-		if render[0]: self.renderWithColor((1,0,0), self.vehicles, 40.1)
+		if render[2]: self.renderWithColor((0,0,1,1), self.structures, 30.0)
+		if render[1]: self.renderWithColor((0,1,0.2,0.99), self.resources, 40.0)
+		if render[0]: self.renderWithColor((1,0,0,1), self.vehicles, 40.1)
 		glPopMatrix()
+		
+		for effect in self.effects:
+			glPushMatrix()
+			#set_trace()
+			#glScalef(0.001,0.001,0.001)
+			glTranslated(effect.position.x,effect.position.y,effect.position.z)
+			effect.renderMe()
+			glPopMatrix()
 
 sandbox = Locale()
